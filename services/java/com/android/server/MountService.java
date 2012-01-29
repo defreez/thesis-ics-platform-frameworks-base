@@ -1858,7 +1858,7 @@ class MountService extends IMountService.Stub
         }
 
         try {
-            mConnector.doCommand(String.format("cryptfs enablecrypto inplace %s", password));
+            mConnector.doCommand(String.format("cryptfs enablecrypto wipe %s", password));
         } catch (NativeDaemonConnectorException e) {
             // Encryption failed
             return e.getCode();
