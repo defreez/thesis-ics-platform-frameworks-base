@@ -537,6 +537,12 @@ class MountService extends IMountService.Stub
                 boolean available = (intent.getBooleanExtra(UsbManager.USB_CONNECTED, false) &&
                         intent.getBooleanExtra(UsbManager.USB_FUNCTION_MASS_STORAGE, false));
                 notifyShareAvailabilityChange(available);
+            } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+                    String state = SystemProperties.get("ro.crypto.state");
+                    if (state.equals("encrypted"))  {
+                        Slog.d(TAG, "Received screen off broadcast, and encrypted, time to wipe keys.");
+						mConnector.doCommand("cryptfs wipe boundaries");
+                    }
             }
         }
     };
@@ -1162,6 +1168,8 @@ class MountService extends IMountService.Stub
         if (mPrimaryVolume != null && mPrimaryVolume.allowMassStorage()) {
             filter.addAction(UsbManager.ACTION_USB_STATE);
         }
+        // Added to support eCryptfs boundary mode
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
         mContext.registerReceiver(mBroadcastReceiver, filter, null, null);
 
         mHandlerThread = new HandlerThread("MountService");
