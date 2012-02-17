@@ -28,6 +28,10 @@ import com.android.internal.widget.PasswordEntryKeyboardView;
 
 import android.os.CountDownTimer;
 import android.os.SystemClock;
+import android.os.ServiceManager;
+import android.os.storage.IMountService;
+import android.os.RemoteException;
+import android.util.Log;
 import android.provider.Settings;
 import android.security.KeyStore;
 import android.text.Editable;
@@ -77,6 +81,9 @@ public class PasswordUnlockScreen extends LinearLayout implements KeyguardScreen
     private final KeyguardStatusViewManager mStatusViewManager;
     private final boolean mUseSystemIME = true; // TODO: Make configurable
     private boolean mResuming; // used to prevent poking the wakelock during onResume()
+    static {
+        System.loadLibrary("android_servers");
+    }
 
     // To avoid accidental lockout due to events while the device in in the pocket, ignore
     // any passwords with length less than or equal to this length.
@@ -296,6 +303,13 @@ public class PasswordUnlockScreen extends LinearLayout implements KeyguardScreen
     private void verifyPasswordAndUnlock() {
         String entry = mPasswordEntry.getText().toString();
         if (mLockPatternUtils.checkPassword(entry)) {
+            IMountService service = IMountService.Stub.asInterface(ServiceManager.getService("mount"));
+            Log.d(TAG, "Unlocked - inserting key");
+            try {
+                int state = service.verifyEncryptionPassword(entry);
+            } catch (RemoteException e) {
+                Log.w(TAG, "Unable to insert key");
+            }
             mCallback.keyguardDone(true);
             mCallback.reportSuccessfulUnlockAttempt();
             mStatusViewManager.setInstructionText(null);

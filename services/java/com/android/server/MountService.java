@@ -541,7 +541,7 @@ class MountService extends IMountService.Stub
                     String state = SystemProperties.get("ro.crypto.state");
                     if (state.equals("encrypted"))  {
                         Slog.d(TAG, "Received screen off broadcast, and encrypted, time to wipe keys.");
-						mConnector.doCommand("cryptfs wipe boundaries");
+                            mConnector.doCommand("cryptfs clearmaster");
                     }
             }
         }
